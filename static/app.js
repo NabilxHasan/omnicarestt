@@ -505,6 +505,29 @@ async function deleteManifestItem(chunkId) {
 }
 
 // --- Digital Doctor Prescription SaaS Functions ---
+
+// The backend returns null for any prescription field it could not read out of
+// the transcript. Render that as an explicit "not specified" — never as a
+// plausible-looking default. PLAN.md: a confident wrong value is more dangerous
+// than a visible gap, because the doctor catches the gap and trusts the value.
+const RX_NOT_SPECIFIED = '<span class="not-specified">not specified</span>';
+
+function rxField(value) {
+  const text = (value === null || value === undefined) ? '' : String(value).trim();
+  return text === '' ? RX_NOT_SPECIFIED : text;
+}
+
+// Same rule for the single-value spans in the letterhead. Also clears the
+// .not-specified styling the markup ships with, so a real value doesn't inherit
+// the muted-italic look reserved for missing data.
+function setRxText(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const text = (value === null || value === undefined) ? '' : String(value).trim();
+  el.classList.toggle('not-specified', text === '');
+  el.textContent = text === '' ? 'not specified' : text;
+}
+
 let patientRecorder = null;
 let patientChunks = [];
 let docRecorder = null;
@@ -610,36 +633,48 @@ async function generatePrescriptionSaaS() {
     const data = await res.json();
 
     // Render Digital Prescription Card
-    document.getElementById('rx-patient-name').textContent = data.patient.name;
-    document.getElementById('rx-patient-age-gender').textContent = `${data.patient.age} Yrs / ${data.patient.gender}`;
-    document.getElementById('rx-date').textContent = data.patient.date;
-    document.getElementById('rx-id').textContent = data.prescription_id;
+    setRxText('rx-patient-name', data.patient.name);
+    setRxText('rx-patient-age-gender',
+      (data.patient.age && data.patient.gender) ? `${data.patient.age} Yrs / ${data.patient.gender}` : '');
+    setRxText('rx-date', data.patient.date);
+    setRxText('rx-id', data.prescription_id);
 
-    // Complaints list
+    // Complaints list. An empty list means no symptom was detected in the
+    // speech — say so, rather than inventing a "General Symptoms Reported" row.
     const compUl = document.getElementById('rx-complaints-list');
-    compUl.innerHTML = data.chief_complaints.map(c => `<li>${c}</li>`).join('');
+    compUl.innerHTML = data.chief_complaints.length > 0
+      ? data.chief_complaints.map(c => `<li>${c}</li>`).join('')
+      : `<li>${RX_NOT_SPECIFIED}</li>`;
 
-    // Investigations
+    // Investigations. "not specified" rather than "no tests requested" — we
+    // only know we didn't hear one, not that the doctor decided against one.
     const testUl = document.getElementById('rx-tests-list');
-    testUl.innerHTML = data.investigations.length > 0 
+    testUl.innerHTML = data.investigations.length > 0
       ? data.investigations.map(t => `<li>${t}</li>`).join('')
-      : '<li>No lab tests requested.</li>';
+      : `<li>${RX_NOT_SPECIFIED}</li>`;
 
-    // Medicines table
+    // Medicines table. Never renders a drug the transcript didn't contain, and
+    // any per-drug field the doctor didn't dictate shows as "not specified".
     const medTbody = document.getElementById('rx-medicines-body');
-    medTbody.innerHTML = data.medicines.map(m => `
+    medTbody.innerHTML = data.medicines.length > 0
+      ? data.medicines.map(m => `
       <tr>
         <td><strong>${m.name}</strong> <small>(${m.bangla_name || ''})</small></td>
-        <td>${m.strength}</td>
-        <td><span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">${m.dosage}</span></td>
-        <td>${m.timing}</td>
-        <td>${m.duration}</td>
+        <td>${rxField(m.strength)}</td>
+        <td>${m.dosage
+          ? `<span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">${m.dosage}</span>`
+          : RX_NOT_SPECIFIED}</td>
+        <td>${rxField(m.timing)}</td>
+        <td>${rxField(m.duration)}</td>
       </tr>
-    `).join('');
+    `).join('')
+      : `<tr><td colspan="5" style="text-align: center; padding: 1.25rem;">${RX_NOT_SPECIFIED} — no medicine was dictated in this transcript.</td></tr>`;
 
     // Doctor Advice
     const advOl = document.getElementById('rx-advice-list');
-    advOl.innerHTML = data.advice.map(a => `<li>${a}</li>`).join('');
+    advOl.innerHTML = data.advice.length > 0
+      ? data.advice.map(a => `<li>${a}</li>`).join('')
+      : `<li>${RX_NOT_SPECIFIED}</li>`;
 
     // Smooth scroll to prescription printable area
     document.getElementById('prescription-printable-area').scrollIntoView({ behavior: 'smooth' });

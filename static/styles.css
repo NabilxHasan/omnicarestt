@@ -152,6 +152,17 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
 }
 
+/* Absent clinical data. Deliberately quiet and italic so it reads as a gap in
+   the transcript rather than as something the doctor dictated — a field we
+   could not hear must never look like one we could. */
+.not-specified {
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 /* Top Telemetry Pills */
 .telemetry-bar {
   display: flex;

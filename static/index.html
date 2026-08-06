@@ -165,24 +165,25 @@
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; font-size: 0.9rem;">
                     <div><strong>Patient:</strong> <span id="rx-patient-name">Kamrul Islam</span></div>
                     <div><strong>Age/Gender:</strong> <span id="rx-patient-age-gender">34 Yrs / Male</span></div>
-                    <div><strong>Date:</strong> <span id="rx-date">2026-08-06</span></div>
-                    <div><strong>Prescription ID:</strong> <span id="rx-id" style="color: var(--accent-cyan); font-family: var(--font-mono);">RX-OMNI-782910</span></div>
+                    <div><strong>Date:</strong> <span id="rx-date" class="not-specified">not specified</span></div>
+                    <div><strong>Prescription ID:</strong> <span id="rx-id" class="not-specified" style="font-family: var(--font-mono);">not specified</span></div>
                 </div>
 
                 <div class="grid-2col" style="grid-template-columns: 1fr 2.5fr;">
                     <!-- Left: Complaints & Investigations -->
                     <div style="border-right: 1px solid rgba(255,255,255,0.08); padding-right: 1rem;">
                         <h4 style="color: var(--accent-cyan); margin-top: 0; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.05em;">Chief Complaints (Symptoms)</h4>
+                        <!-- Placeholder only. Filled from the transcript by
+                             generatePrescriptionSaaS(); never seeded with
+                             sample clinical data that could be mistaken for a
+                             reading of this patient's speech. -->
                         <ul id="rx-complaints-list" style="padding-left: 1.2rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-                            <li>Fever (3 days)</li>
-                            <li>Dry Cough</li>
-                            <li>Headache & Body Ache</li>
+                            <li class="not-specified">not specified</li>
                         </ul>
 
                         <h4 style="color: var(--accent-purple); margin-top: 1.5rem; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.05em;">Lab Investigations</h4>
                         <ul id="rx-tests-list" style="padding-left: 1.2rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-                            <li>ECG (Electrocardiogram)</li>
-                            <li>CBC (Complete Blood Count)</li>
+                            <li class="not-specified">not specified</li>
                         </ul>
                     </div>
 
@@ -203,28 +204,23 @@
                                     <th>Duration</th>
                                 </tr>
                             </thead>
+                            <!-- Intentionally empty of drugs. Shipping sample
+                                 rows here put a real-looking Paracetamol /
+                                 Omeprazole order on screen before anyone had
+                                 spoken — exactly the confident-wrong-value
+                                 failure PLAN.md rules out. -->
                             <tbody id="rx-medicines-body">
                                 <tr>
-                                    <td><strong>Paracetamol</strong></td>
-                                    <td>500mg</td>
-                                    <td><span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">1 - 0 - 1</span></td>
-                                    <td>After meal</td>
-                                    <td>7 days</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Omeprazole</strong></td>
-                                    <td>20mg</td>
-                                    <td><span class="badge-tag" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan);">1 - 0 - 1</span></td>
-                                    <td>Before meal</td>
-                                    <td>7 days</td>
+                                    <td colspan="5" style="text-align: center; padding: 1.25rem;">
+                                        <span class="not-specified">not specified</span> — no medicine was dictated in this transcript.
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
 
                         <h4 style="color: var(--accent-emerald); margin-top: 1.5rem; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.05em;">Doctor Advice</h4>
                         <ol id="rx-advice-list" style="padding-left: 1.2rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
-                            <li>Drink plenty of clean water and warm fluids.</li>
-                            <li>Take adequate bed rest for at least 3-5 days.</li>
+                            <li class="not-specified">not specified</li>
                         </ol>
                     </div>
                 </div>
