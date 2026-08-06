@@ -104,7 +104,16 @@ def transcribe(audio_path: str | Path) -> str:
         raise FileNotFoundError(f"audio not found: {audio_path}")
 
     asr = _get_pipeline()
-    result = asr(str(audio_path))
-    # `pipeline` returns {"text": "..."} for a single input and a list of such
-    # dicts for a list of inputs. We only ever pass one, so index into the dict.
+    try:
+        import soundfile as sf
+        audio_data, sr = sf.read(str(audio_path))
+        result = asr({"raw": audio_data, "sampling_rate": sr})
+    except Exception:
+        try:
+            import librosa
+            audio_data, sr = librosa.load(str(audio_path), sr=16000)
+            result = asr({"raw": audio_data, "sampling_rate": sr})
+        except Exception:
+            result = asr(str(audio_path))
+
     return result["text"].strip()

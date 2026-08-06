@@ -9,7 +9,16 @@ a model name, a language code, an int threshold), it belongs here.
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
+
+try:
+    import imageio_ffmpeg
+    ffmpeg_dir = os.path.dirname(imageio_ffmpeg.get_ffmpeg_exe())
+    if ffmpeg_dir not in os.environ.get("PATH", ""):
+        os.environ["PATH"] = ffmpeg_dir + os.path.pathsep + os.environ.get("PATH", "")
+except Exception:
+    pass
 
 # --- Paths -----------------------------------------------------------------
 # Everything is anchored on this file's location so the project works no matter
