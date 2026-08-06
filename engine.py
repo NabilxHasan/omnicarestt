@@ -57,13 +57,15 @@ import config
 _asr: Optional[Any] = None
 
 
-def _get_pipeline() -> Any:
-    """Build the ASR pipeline on first call, return the cached one after that.
+def _resolve_model_id() -> str:
+    path = config.STT_MODEL_DIR
+    if path.is_dir() and (path / "config.json").exists():
+        return str(path)
+    return "bengaliAI/tugstugi_bengaliai-asr_whisper-medium"
 
-    Imports are inside the function so that `import engine` is cheap: torch +
-    transformers together are ~500 ms of import time and 200 MB of RAM before
-    they've done anything. Deferring them keeps startup fast.
-    """
+
+def _get_pipeline() -> Any:
+    """Build the ASR pipeline on first call, return the cached one after that."""
     global _asr
     if _asr is not None:
         return _asr
@@ -71,19 +73,15 @@ def _get_pipeline() -> Any:
     import torch
     from transformers import pipeline
 
+    model_id = _resolve_model_id()
     _asr = pipeline(
         task="automatic-speech-recognition",
-        model=str(config.STT_MODEL_DIR),
+        model=model_id,
         device=config.DEVICE,           # "cpu" locally; "cuda:0" on Modal/RunPod
         torch_dtype=torch.float32,      # CPU has no fp16; GPU deploy will switch to torch.float16
         chunk_length_s=30,              # Whisper's native context window
         stride_length_s=(6, 0),         # 6 s left overlap catches words spanning chunk boundaries
         return_timestamps=False,        # we return plain text; timestamps add cost + complexity
-        # NOTE: no `generate_kwargs={"language": ..., "task": ...}` here. The
-        # bengaliai checkpoint's generation_config is older than what current
-        # transformers expects, and passing the args raises ValueError. The
-        # model is Bangla-only anyway (fine-tuned on ~1200h Bangladeshi audio),
-        # so the default decode is what we want. See docstring point 2.
     )
     return _asr
 

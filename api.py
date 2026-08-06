@@ -578,19 +578,23 @@ def health() -> dict:
 
 
 @app.post("/transcribe")
-async def transcribe_endpoint(audio: UploadFile = File(...)) -> dict:
+async def transcribe_endpoint(
+    audio: Optional[UploadFile] = File(None),
+    file: Optional[UploadFile] = File(None)
+) -> dict:
     """Multipart audio upload (used by /mic and by external callers).
 
     Returns BOTH engines' transcripts plus their agreement score. Older
     callers that only read `text` and `model` keep working unchanged.
     """
-    if not audio.filename:
-        raise HTTPException(400, "missing filename on uploaded file")
-    suffix = Path(audio.filename).suffix or ".wav"
+    audio_file = audio or file
+    if not audio_file or not audio_file.filename:
+        raise HTTPException(400, "missing audio or file parameter in upload")
+    suffix = Path(audio_file.filename).suffix or ".wav"
 
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
     try:
-        shutil.copyfileobj(audio.file, tmp)
+        shutil.copyfileobj(audio_file.file, tmp)
         tmp.close()
         return transcribe_both(tmp.name)
     except FileNotFoundError as e:

@@ -219,6 +219,7 @@ async function uploadAudioFile(file) {
 // --- Process Transcription via API ---
 async function processAudioTranscription(audioData) {
   const formData = new FormData();
+  formData.append('audio', audioData, 'recording.wav');
   formData.append('file', audioData, 'recording.wav');
 
   document.getElementById('transcript-e1').innerHTML = '<em>Inference in progress...</em>';
