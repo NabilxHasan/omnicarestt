@@ -12,6 +12,31 @@ import re
 import json
 from typing import Dict, List, Any, Optional
 
+# --- Qwen LLM Model Configuration ---
+QWEN_LORA_MODEL_ID = "millat/Qwen2.5-7B-BDLAW-LoRA"
+QWEN_BASE_MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
+
+def query_qwen_medical_llm(prompt: str) -> Optional[str]:
+    """Query Qwen LLM (millat/Qwen2.5-7B-BDLAW-LoRA / Qwen2.5-7B-Instruct) for medical normalization."""
+    try:
+        from huggingface_hub import InferenceClient
+        client = InferenceClient(model=QWEN_BASE_MODEL_ID)
+        response = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an expert clinical AI medical assistant. Convert spoken Bangla/Banglish medical prescriptions into clean JSON format containing standardized English medicine names, dosage frequencies (1-0-1, 1-1-1), duration, and symptoms."
+                },
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=300,
+            temperature=0.1
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"[medical_llm] Qwen LLM notice: {e} (using local clinical normalizer)")
+        return None
+
 # --- Medical Dictionary Mappings (Bangla / Banglish -> Standardized English) ---
 SYMPTOM_MAP = {
     "জ্বর": "Fever",
