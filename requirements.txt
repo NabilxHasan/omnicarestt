@@ -1,0 +1,20 @@
+# Runtime deps for the STT service.
+# Install with:  pip install -r requirements.txt
+# (Reuse the /Users/arko/claude/bangla-stt/.venv for local dev — it already
+#  has all of this. Fresh envs / deploy targets use this file.)
+
+# --- Model runtime ---
+transformers>=4.45          # WhisperProcessor + WhisperForConditionalGeneration + pipeline()
+torch>=2.1                  # backend; CPU wheel is fine on the M5, GPU wheel on deploy
+# --- Audio I/O ---
+librosa>=0.10               # loads + resamples anything ffmpeg can read
+soundfile>=0.12             # WAV read/write; librosa's default backend
+# --- Metrics (Layer 2) ---
+jiwer>=3.0                  # WER / CER
+# --- Serving (Layer 3) ---
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9     # required by FastAPI for file uploads
+# --- Eval data (Layer 2) ---
+datasets>=3.0               # streams FLEURS bn_in from Hugging Face
+torchcodec>=0.4             # datasets 5.x needs this for audio decoding

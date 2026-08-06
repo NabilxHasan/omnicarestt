@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+ENV/
+
+# Audio caches & heavy model data
+audio/
+models/
+training/chunks/
+training/manifest.jsonl
+bench/history.json
+lyrics_cache/
+
+# OS & IDE
+.DS_Store
+.vscode/
+.idea/
+.claude/
+scratch/

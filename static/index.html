@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omnicare STT — Google AI Labs Studio</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎙️</text></svg>">
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- Top Navigation Telemetry Bar (Opal Aesthetic) -->
+    <header class="app-header">
+        <div class="brand-section">
+            <div class="brand-icon">O</div>
+            <div>
+                <div class="brand-title">Omnicare STT Studio</div>
+                <div class="brand-subtitle">
+                    Google AI Labs Architecture
+                    <span class="badge-tag">Bangla Medical ASR</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="telemetry-bar">
+            <div class="telemetry-item">
+                <div class="status-dot active"></div>
+                <span>Engine 1: <strong>bengaliai-asr-whisper-medium</strong></span>
+            </div>
+            <div class="telemetry-item">
+                <div class="status-dot active" style="background-color: var(--accent-purple); box-shadow: 0 0 10px var(--accent-purple);"></div>
+                <span>Engine 2: <strong>Whisper-Turbo</strong></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Workspace Navigation Pills -->
+    <nav class="nav-pills-container">
+        <div class="nav-pills">
+            <button class="nav-pill active" onclick="switchTab('studio')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                Live Studio & Mic
+            </button>
+            <button class="nav-pill" onclick="switchTab('medical')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                Medical Entity Inspector
+            </button>
+            <button class="nav-pill" onclick="switchTab('benchmark')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                YouTube Benchmark
+            </button>
+            <button class="nav-pill" onclick="switchTab('dataset')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Training Data Studio
+            </button>
+        </div>
+    </nav>
+
+    <!-- WORKSPACE 1: LIVE STUDIO -->
+    <main id="tab-studio" class="workspace active">
+        <div class="grid-2col">
+            <!-- Left Card: Live Mic Visualizer & Audio File Drop -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Real-time Audio Input
+                    </div>
+                    <span id="rec-status-tag" class="badge-tag" style="background: rgba(255,255,255,0.05); color: var(--text-muted); border-color: transparent;">READY</span>
+                </div>
+
+                <!-- Animated Audio Waveform Canvas -->
+                <div class="visualizer-container">
+                    <canvas id="audioCanvas"></canvas>
+                </div>
+
+                <!-- Microphone Controls -->
+                <div class="mic-controls-bar">
+                    <button id="record-btn" class="rec-btn-main" onclick="toggleRecording()">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+                        <span id="rec-btn-text">Start Speech Capture</span>
+                    </button>
+                    <div id="rec-timer" class="rec-timer">00:00</div>
+                </div>
+
+                <div style="margin: 1.5rem 0 0.5rem; text-align: center; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em;">
+                    — OR DRAG AUDIO FILE —
+                </div>
+
+                <!-- File Drag and Drop Zone -->
+                <div class="dropzone" id="audio-dropzone" onclick="document.getElementById('file-input').click()">
+                    <div class="dropzone-icon">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div class="dropzone-text">Click or Drop Audio File Here</div>
+                    <div class="dropzone-subtext">Supports WAV, MP3, M4A, FLAC (Max 25MB)</div>
+                    <input type="file" id="file-input" accept="audio/*" style="display: none;" onchange="handleFileSelect(event)">
+                </div>
+
+                <div id="audio-preview-container" style="display: none; margin-top: 1rem;">
+                    <audio id="audio-player" controls style="width: 100%; border-radius: var(--radius-md);"></audio>
+                </div>
+            </div>
+
+            <!-- Right Card: Dual Engine Transcription & Agreement Telemetry -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        Stitch Dual-Engine Evaluation
+                    </div>
+                    <button class="btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;" onclick="copyTranscript()">Copy Transcript</button>
+                </div>
+
+                <!-- Agreement Telemetry Meter -->
+                <div class="agreement-meter-card">
+                    <div class="meter-info">
+                        <span class="meter-label">Model Cross Agreement</span>
+                        <span class="meter-value" id="agreement-val">--%</span>
+                    </div>
+                    <div id="agreement-badge" class="meter-badge high">Awaiting Audio</div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                    <!-- Engine 1 Output -->
+                    <div class="engine-output-box primary">
+                        <div class="engine-tag">
+                            <span class="engine-name">Engine 1 (Bengali.AI ASR Whisper-Medium)</span>
+                            <span id="e1-time">-- s</span>
+                        </div>
+                        <div id="transcript-e1" class="transcript-text-area">
+                            <em>Speak or upload audio to generate Bangla transcription...</em>
+                        </div>
+                    </div>
+
+                    <!-- Engine 2 Output -->
+                    <div class="engine-output-box">
+                        <div class="engine-tag">
+                            <span class="engine-name" style="color: var(--accent-purple);">Engine 2 (Whisper-Large-v3-Turbo / MLX)</span>
+                            <span id="e2-time">-- s</span>
+                        </div>
+                        <div id="transcript-e2" class="transcript-text-area" style="color: var(--text-secondary);">
+                            <em>Engine 2 output will appear here...</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- WORKSPACE 2: MEDICAL ENTITY INSPECTOR -->
+    <main id="tab-medical" class="workspace">
+        <div class="glass-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    Medical Entity Classification & Bengali Unicode Normalization
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <span class="medical-tag symptom">Symptom</span>
+                    <span class="medical-tag drug">Medication</span>
+                    <span class="medical-tag dosage">Dosage</span>
+                    <span class="medical-tag anatomy">Anatomy</span>
+                </div>
+            </div>
+
+            <div class="grid-2col">
+                <div class="engine-output-box primary">
+                    <div class="engine-tag">
+                        <span class="engine-name">Highlighted Clinical Transcript</span>
+                    </div>
+                    <div id="medical-highlight-box" class="transcript-text-area">
+                        রোগীর <span class="medical-tag symptom">জ্বর</span> ও <span class="medical-tag symptom">মাথা ব্যথা</span> রয়েছে। তাঁকে <span class="medical-tag drug">প্যারাসিটামল</span> <span class="medical-tag dosage"> ৫০০ মিগ্রা</span> দিনে ২ বার খাওয়ার পরামর্শ দেয়া হলো।
+                    </div>
+                </div>
+
+                <div class="engine-output-box">
+                    <div class="engine-tag">
+                        <span class="engine-name" style="color: var(--accent-emerald);">bnorm.py Unicode Normalized Comparison</span>
+                    </div>
+                    <div id="bnorm-compare-box" class="transcript-text-area" style="font-family: var(--font-mono); font-size: 0.95rem;">
+                        [Original] রোগীর জ্বর ও মাথা ব্যথা রয়েছে...<br><br>
+                        [Normalized] রোগীর জ্বর ও মাথাব্যথা রয়েছে...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- WORKSPACE 3: YOUTUBE BENCHMARK -->
+    <main id="tab-benchmark" class="workspace">
+        <div class="glass-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                    YouTube Speech Benchmark & WER Evaluation
+                </div>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="yt-url-input" class="form-input" placeholder="Paste YouTube video URL (e.g., https://www.youtube.com/watch?v=...)">
+                <button class="btn-primary" onclick="runYouTubeBench()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Run Speech Benchmark
+                </button>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="glass-card">
+            <div class="card-header">
+                <div class="card-title">Transcription Benchmark History</div>
+                <button class="btn-secondary" onclick="loadBenchHistory()">Refresh History</button>
+            </div>
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Video / Audio ID</th>
+                            <th>Transcribed Text</th>
+                            <th>Agreement</th>
+                            <th>Duration</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                Loading past benchmark entries...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- WORKSPACE 4: DATASET CURATION STUDIO -->
+    <main id="tab-dataset" class="workspace">
+        <div class="glass-card">
+            <div class="card-header">
+                <div class="card-title">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Bangla Dataset Collection Studio (Kaggle Fine-Tuning Pipeline)
+                </div>
+                <a href="/training/export" target="_blank" class="btn-primary" style="text-decoration: none;">
+                    Export Kaggle Manifest CSV
+                </a>
+            </div>
+
+            <div class="input-group" style="margin-bottom: 1.5rem;">
+                <input type="text" id="training-yt-url" class="form-input" placeholder="Enter YouTube URL for automatic caption chunking and speech dataset extraction...">
+                <button class="btn-primary" onclick="chunkYouTubeForTraining()">
+                    Chunk & Extract Pairs
+                </button>
+            </div>
+
+            <div id="candidate-pairs-container" style="display: none; margin-bottom: 2rem;">
+                <div class="card-header">
+                    <div class="card-title" style="color: var(--accent-cyan);">
+                        Extracted Candidate Speech Pairs (Review & Accept)
+                    </div>
+                    <span id="candidate-count-tag" class="badge-tag">0 PAIRS</span>
+                </div>
+                <div class="data-table-container" style="margin-bottom: 1.5rem;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Chunk ID</th>
+                                <th>Audio Clip</th>
+                                <th>STT Text (Engine 1 vs Engine 2)</th>
+                                <th>Verified Label (Editable)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="candidate-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Manifest Data Table -->
+            <div class="card-header" style="margin-top: 1rem;">
+                <div class="card-title">Accepted Training Dataset Manifest</div>
+            </div>
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Chunk ID</th>
+                            <th>Audio Stream</th>
+                            <th>Reference / Final Text</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manifest-table-body">
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                Loading training dataset manifest...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
