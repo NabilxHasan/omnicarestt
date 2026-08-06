@@ -39,7 +39,11 @@
     <!-- Workspace Navigation Pills -->
     <nav class="nav-pills-container">
         <div class="nav-pills">
-            <button class="nav-pill active" onclick="switchTab('studio')">
+            <button class="nav-pill active" onclick="switchTab('prescription')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Digital Prescription SaaS
+            </button>
+            <button class="nav-pill" onclick="switchTab('studio')">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                 Live Studio & Mic
             </button>
@@ -58,8 +62,178 @@
         </div>
     </nav>
 
+    <!-- WORKSPACE 0: DIGITAL DOCTOR PRESCRIPTION SAAS -->
+    <main id="tab-prescription" class="workspace active">
+        <div class="grid-2col">
+            <!-- Patient Voice Message & Symptoms -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        1. Patient Voice Symptoms
+                    </div>
+                    <span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">Step 1: Patient Input</span>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 1rem;">
+                    <input type="text" id="patient-name" class="form-input" placeholder="Patient Name" value="Kamrul Islam">
+                    <input type="text" id="patient-age" class="form-input" placeholder="Age" value="34" style="max-width: 90px;">
+                    <select id="patient-gender" class="form-input" style="max-width: 110px;">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+
+                <div class="mic-controls-bar">
+                    <button id="patient-rec-btn" class="rec-btn-main" onclick="recordPatientVoice()">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+                        <span id="patient-rec-text">Record Bangla Symptoms Voice</span>
+                    </button>
+                    <div id="patient-rec-timer" class="rec-timer">00:00</div>
+                </div>
+
+                <div class="engine-output-box primary" style="margin-top: 1rem;">
+                    <div class="engine-tag">
+                        <span class="engine-name">Bangla Speech Transcript (STT Output)</span>
+                    </div>
+                    <textarea id="patient-speech-text" class="form-input" style="width: 100%; min-height: 80px; font-family: inherit; background: transparent; border: none; color: white;" placeholder="Spoken symptoms transcript will appear here (or type manually)...">গত ৩ দিন ধরে প্রচণ্ড জ্বর, শুকনো কাশি আর মাথাব্যথা করছে। সাথে শরীর ব্যথা আছে।</textarea>
+                </div>
+            </div>
+
+            <!-- Doctor Voice Dictation & Mixed Term Normalizer -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        2. Doctor Dictation & AI Medical Normalizer
+                    </div>
+                    <span class="badge-tag" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan);">Step 2: AI Doctor Assistant</span>
+                </div>
+
+                <div class="mic-controls-bar" style="margin-bottom: 1rem;">
+                    <button id="doc-rec-btn" class="rec-btn-main" style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));" onclick="recordDoctorVoice()">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+                        <span id="doc-rec-text">Dictate Prescription Voice</span>
+                    </button>
+                    <div id="doc-rec-timer" class="rec-timer">00:00</div>
+                </div>
+
+                <div class="engine-output-box primary">
+                    <div class="engine-tag">
+                        <span class="engine-name">Raw Spoken Doctor Dictation</span>
+                    </div>
+                    <textarea id="doctor-speech-text" class="form-input" style="width: 100%; min-height: 80px; font-family: inherit; background: transparent; border: none; color: white;" placeholder="Doctor spoken dictation will appear here...">প্যারাসিটামল ৫০০ মিগ্রা দিনে ৩ বার খাবার পর ৭ দিন। আর ওমিপ্রাজল ২০ মিগ্রা দিনে ২ বার খাবার আগে। ইসিজি করতে হবে। পর্যাপ্ত পানি খাবেন।</textarea>
+                </div>
+
+                <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                    <button class="btn-primary" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald));" onclick="generatePrescriptionSaaS()">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Normalize Medical Terms & Generate RX
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Digital Prescription Card Output -->
+        <div class="glass-card" style="margin-top: 1.5rem;" id="prescription-printable-area">
+            <div class="card-header">
+                <div class="card-title">
+                    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    Digital Doctor Prescription Copy
+                </div>
+                <button class="btn-primary" onclick="window.print()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                    Print / Download PDF Prescription
+                </button>
+            </div>
+
+            <!-- Letterhead -->
+            <div style="border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); padding: 1.5rem; background: rgba(15, 23, 42, 0.6);">
+                <div style="display: flex; justify-content: space-between; border-bottom: 2px solid var(--accent-cyan); padding-bottom: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <h2 style="font-family: var(--font-heading); color: var(--accent-cyan); margin: 0; font-size: 1.5rem;">OmniCare Telemedicine & Digital Clinic</h2>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Smart AI-Powered Speech Prescription System</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <h3 id="rx-doc-name" style="margin: 0; color: white; font-size: 1.1rem;">Dr. Nabil Hasan</h3>
+                        <div id="rx-doc-title" style="color: var(--text-muted); font-size: 0.8rem;">MBBS, FCPS (Internal Medicine)</div>
+                        <div style="color: var(--accent-emerald); font-size: 0.78rem; font-weight: 600;">BMDC Reg No. A-789012</div>
+                    </div>
+                </div>
+
+                <!-- Patient Metadata Bar -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    <div><strong>Patient:</strong> <span id="rx-patient-name">Kamrul Islam</span></div>
+                    <div><strong>Age/Gender:</strong> <span id="rx-patient-age-gender">34 Yrs / Male</span></div>
+                    <div><strong>Date:</strong> <span id="rx-date">2026-08-06</span></div>
+                    <div><strong>Prescription ID:</strong> <span id="rx-id" style="color: var(--accent-cyan); font-family: var(--font-mono);">RX-OMNI-782910</span></div>
+                </div>
+
+                <div class="grid-2col" style="grid-template-columns: 1fr 2.5fr;">
+                    <!-- Left: Complaints & Investigations -->
+                    <div style="border-right: 1px solid rgba(255,255,255,0.08); padding-right: 1rem;">
+                        <h4 style="color: var(--accent-cyan); margin-top: 0; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.05em;">Chief Complaints (Symptoms)</h4>
+                        <ul id="rx-complaints-list" style="padding-left: 1.2rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                            <li>Fever (3 days)</li>
+                            <li>Dry Cough</li>
+                            <li>Headache & Body Ache</li>
+                        </ul>
+
+                        <h4 style="color: var(--accent-purple); margin-top: 1.5rem; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.05em;">Lab Investigations</h4>
+                        <ul id="rx-tests-list" style="padding-left: 1.2rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                            <li>ECG (Electrocardiogram)</li>
+                            <li>CBC (Complete Blood Count)</li>
+                        </ul>
+                    </div>
+
+                    <!-- Right: RX Medicine Table -->
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <span style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--accent-cyan);">Rx</span>
+                            <span style="color: var(--text-muted); font-size: 0.85rem;">(AI Normalized English Medical Prescriptions)</span>
+                        </div>
+
+                        <table class="data-table" style="width: 100%; font-size: 0.9rem;">
+                            <thead>
+                                <tr>
+                                    <th>Medicine Name</th>
+                                    <th>Strength</th>
+                                    <th>Dosage Schedule</th>
+                                    <th>Timing</th>
+                                    <th>Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rx-medicines-body">
+                                <tr>
+                                    <td><strong>Paracetamol</strong></td>
+                                    <td>500mg</td>
+                                    <td><span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">1 - 0 - 1</span></td>
+                                    <td>After meal</td>
+                                    <td>7 days</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Omeprazole</strong></td>
+                                    <td>20mg</td>
+                                    <td><span class="badge-tag" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan);">1 - 0 - 1</span></td>
+                                    <td>Before meal</td>
+                                    <td>7 days</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h4 style="color: var(--accent-emerald); margin-top: 1.5rem; text-transform: uppercase; font-size: 0.82rem; letter-spacing: 0.05em;">Doctor Advice</h4>
+                        <ol id="rx-advice-list" style="padding-left: 1.2rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">
+                            <li>Drink plenty of clean water and warm fluids.</li>
+                            <li>Take adequate bed rest for at least 3-5 days.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
     <!-- WORKSPACE 1: LIVE STUDIO -->
-    <main id="tab-studio" class="workspace active">
+    <main id="tab-studio" class="workspace">
         <div class="grid-2col">
             <!-- Left Card: Live Mic Visualizer & Audio File Drop -->
             <div class="glass-card">

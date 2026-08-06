@@ -957,6 +957,46 @@ def training_export() -> StreamingResponse:
     )
 
 
+# --- Medical Normalizer & Prescription Routes ---
+import medical_llm
+
+PRESCRIPTION_HISTORY: list[dict] = []
+
+class NormalizeRequest(BaseModel):
+    text: str
+
+class PrescriptionRequest(BaseModel):
+    patient_name: str = "Anonymous Patient"
+    patient_age: str = "30"
+    patient_gender: str = "Male"
+    doctor_name: str = "Dr. Nabil Hasan"
+    doctor_title: str = "MBBS, FCPS (Internal Medicine)"
+    patient_transcript: str = ""
+    doctor_dictation: str = ""
+
+@app.post("/medical/normalize")
+def medical_normalize_endpoint(req: NormalizeRequest) -> dict:
+    return medical_llm.normalize_medical_text(req.text)
+
+@app.post("/medical/prescription")
+def medical_prescription_endpoint(req: PrescriptionRequest) -> dict:
+    prescription = medical_llm.generate_digital_prescription(
+        req.patient_name,
+        req.patient_age,
+        req.patient_gender,
+        req.doctor_name,
+        req.doctor_title,
+        req.patient_transcript,
+        req.doctor_dictation
+    )
+    PRESCRIPTION_HISTORY.append(prescription)
+    return prescription
+
+@app.get("/medical/prescriptions")
+def list_prescriptions() -> list[dict]:
+    return PRESCRIPTION_HISTORY
+
+
 TRAINING_PAGE = """<!DOCTYPE html>
 <html lang="en">
 <head>

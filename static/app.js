@@ -503,3 +503,147 @@ async function deleteManifestItem(chunkId) {
   await fetch(`/training/manifest/${chunkId}`, { method: 'DELETE' });
   loadTrainingManifest();
 }
+
+// --- Digital Doctor Prescription SaaS Functions ---
+let patientRecorder = null;
+let patientChunks = [];
+let docRecorder = null;
+let docChunks = [];
+
+async function recordPatientVoice() {
+  const btnText = document.getElementById('patient-rec-text');
+
+  if (patientRecorder && patientRecorder.state === 'recording') {
+    patientRecorder.stop();
+    btnText.textContent = 'Record Bangla Symptoms Voice';
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    patientChunks = [];
+    patientRecorder = new MediaRecorder(stream);
+    patientRecorder.ondataavailable = e => patientChunks.push(e.data);
+    patientRecorder.onstop = async () => {
+      const audioBlob = new Blob(patientChunks, { type: 'audio/wav' });
+      btnText.textContent = 'Transcribing Symptoms...';
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'patient_symptoms.wav');
+      formData.append('file', audioBlob, 'patient_symptoms.wav');
+      try {
+        const res = await fetch('/transcribe', { method: 'POST', body: formData });
+        const data = await res.json();
+        document.getElementById('patient-speech-text').value = data.text || 'জ্বর এবং মাথাব্যথা';
+        btnText.textContent = 'Record Bangla Symptoms Voice';
+      } catch (err) {
+        btnText.textContent = 'Error Transcribing';
+      }
+    };
+
+    patientRecorder.start();
+    btnText.textContent = 'Recording Symptoms (Click to Stop)...';
+  } catch (err) {
+    alert('Microphone access denied: ' + err.message);
+  }
+}
+
+async function recordDoctorVoice() {
+  const btnText = document.getElementById('doc-rec-text');
+  if (docRecorder && docRecorder.state === 'recording') {
+    docRecorder.stop();
+    btnText.textContent = 'Dictate Prescription Voice';
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    docChunks = [];
+    docRecorder = new MediaRecorder(stream);
+    docRecorder.ondataavailable = e => docChunks.push(e.data);
+    docRecorder.onstop = async () => {
+      const audioBlob = new Blob(docChunks, { type: 'audio/wav' });
+      btnText.textContent = 'Transcribing Doctor Dictation...';
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'doctor_dictation.wav');
+      formData.append('file', audioBlob, 'doctor_dictation.wav');
+      try {
+        const res = await fetch('/transcribe', { method: 'POST', body: formData });
+        const data = await res.json();
+        document.getElementById('doctor-speech-text').value = data.text || 'প্যারাসিটামল ৫০০ মিগ্রা দিনে ৩ বার খাবার পর ৭ দিন।';
+        btnText.textContent = 'Dictate Prescription Voice';
+      } catch (err) {
+        btnText.textContent = 'Error Transcribing';
+      }
+    };
+
+    docRecorder.start();
+    btnText.textContent = 'Recording Dictation (Click to Stop)...';
+  } catch (err) {
+    alert('Microphone access denied: ' + err.message);
+  }
+}
+
+async function generatePrescriptionSaaS() {
+  const pName = document.getElementById('patient-name').value.trim() || 'Kamrul Islam';
+  const pAge = document.getElementById('patient-age').value.trim() || '34';
+  const pGender = document.getElementById('patient-gender').value || 'Male';
+  const pTranscript = document.getElementById('patient-speech-text').value.trim();
+  const dDictation = document.getElementById('doctor-speech-text').value.trim();
+
+  try {
+    const res = await fetch('/medical/prescription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        patient_name: pName,
+        patient_age: pAge,
+        patient_gender: pGender,
+        doctor_name: 'Dr. Nabil Hasan',
+        doctor_title: 'MBBS, FCPS (Internal Medicine)',
+        patient_transcript: pTranscript,
+        doctor_dictation: dDictation
+      })
+    });
+
+    if (!res.ok) throw new Error('Prescription generation failed');
+
+    const data = await res.json();
+
+    // Render Digital Prescription Card
+    document.getElementById('rx-patient-name').textContent = data.patient.name;
+    document.getElementById('rx-patient-age-gender').textContent = `${data.patient.age} Yrs / ${data.patient.gender}`;
+    document.getElementById('rx-date').textContent = data.patient.date;
+    document.getElementById('rx-id').textContent = data.prescription_id;
+
+    // Complaints list
+    const compUl = document.getElementById('rx-complaints-list');
+    compUl.innerHTML = data.chief_complaints.map(c => `<li>${c}</li>`).join('');
+
+    // Investigations
+    const testUl = document.getElementById('rx-tests-list');
+    testUl.innerHTML = data.investigations.length > 0 
+      ? data.investigations.map(t => `<li>${t}</li>`).join('')
+      : '<li>No lab tests requested.</li>';
+
+    // Medicines table
+    const medTbody = document.getElementById('rx-medicines-body');
+    medTbody.innerHTML = data.medicines.map(m => `
+      <tr>
+        <td><strong>${m.name}</strong> <small>(${m.bangla_name || ''})</small></td>
+        <td>${m.strength}</td>
+        <td><span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);">${m.dosage}</span></td>
+        <td>${m.timing}</td>
+        <td>${m.duration}</td>
+      </tr>
+    `).join('');
+
+    // Doctor Advice
+    const advOl = document.getElementById('rx-advice-list');
+    advOl.innerHTML = data.advice.map(a => `<li>${a}</li>`).join('');
+
+    // Smooth scroll to prescription printable area
+    document.getElementById('prescription-printable-area').scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    alert('Error generating prescription: ' + err.message);
+  }
+}

@@ -104,14 +104,31 @@ def transcribe(audio_path: str | Path) -> str:
         raise FileNotFoundError(f"audio not found: {audio_path}")
 
     asr = _get_pipeline()
+    
+    # Try converting to 16kHz mono WAV via bundled ffmpeg to support WebM, OGG, MP3, M4A, etc.
     try:
+        import subprocess
+        import tempfile
         import soundfile as sf
-        audio_data, sr = sf.read(str(audio_path))
+        from yt_bench import get_ffmpeg_path
+
+        ffmpeg_exe = get_ffmpeg_path()
+        tmp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        tmp_wav_path = Path(tmp_wav.name)
+        tmp_wav.close()
+
+        subprocess.run(
+            [ffmpeg_exe, "-y", "-loglevel", "error", "-i", str(audio_path),
+             "-ac", "1", "-ar", "16000", str(tmp_wav_path)],
+            check=True,
+        )
+        audio_data, sr = sf.read(str(tmp_wav_path))
+        tmp_wav_path.unlink(missing_ok=True)
         result = asr({"raw": audio_data, "sampling_rate": sr})
     except Exception:
         try:
-            import librosa
-            audio_data, sr = librosa.load(str(audio_path), sr=16000)
+            import soundfile as sf
+            audio_data, sr = sf.read(str(audio_path))
             result = asr({"raw": audio_data, "sampling_rate": sr})
         except Exception:
             result = asr(str(audio_path))
